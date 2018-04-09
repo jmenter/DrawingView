@@ -4,6 +4,7 @@ import UIKit
 class DrawingView: UIView {
 
     fileprivate let path = UIBezierPath()
+    fileprivate var previousPoint: CGPoint = .zero
     
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
@@ -16,9 +17,10 @@ class DrawingView: UIView {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let location = touches.first?.location(in: self) else { return }
-        path.move(to: CGPoint(x: location.x + 0.1, y: location.y + 0.1))
-        add(point: location)
+        guard let point = touches.first?.location(in: self) else { return }
+        path.move(to: CGPoint(x: point.x + 0.1, y: point.y + 0.1))
+        path.addLine(to: point)
+        previousPoint = point
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -31,14 +33,15 @@ class DrawingView: UIView {
         add(point: location)
     }
     
+    fileprivate func add(point: CGPoint) {
+        path.addQuadCurve(to: CGPoint(x: (previousPoint.x + point.x) / 2, y: (previousPoint.y + point.y) / 2), controlPoint: previousPoint)
+        previousPoint = point
+        setNeedsDisplay()
+    }
+    
     override func draw(_ rect: CGRect) {
         UIColor.black.setStroke()
         path.stroke()
     }
 
-    fileprivate func add(point: CGPoint) {
-        path.addLine(to: point)
-        setNeedsDisplay()
-    }
-    
 }
